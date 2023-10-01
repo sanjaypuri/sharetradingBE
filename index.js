@@ -45,7 +45,7 @@ app.post("/api/newuser", (req, res) => {
           if(result.affectedRows){
             return res.json({success:true, data:"", message:`${username} registered successfully`});
           } else {
-            return res.json({false:true, error:`${username} could not be registered`});
+            return res.json({success:false, error:`${username} could not be registered`});
           };
         });
       } catch(err) {
