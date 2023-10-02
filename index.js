@@ -81,12 +81,34 @@ app.post("/api/login", (req, res) => {
               userid:result[0].id,
               user:result[0].username,
               token:token
-             }, 
-             message:`${username} logged in successfully`});
+            }, 
+            message:`${username} logged in successfully`});
+          } else {
+            return res.json({success:false, error:"Invalid username or password"});
         };
       });
     });
   } catch (err) {
+    return res.json({success:false, error:err});
+  };
+});
+
+/////////////////////
+//List of Companies//
+////////////////////
+app.get("/api/companies", (req, res) => {
+  const sql = "SELECT * from companies order by company";
+  try {
+    conn.query(sql, (err, result) => {
+      if(err) {
+        return res.json({success:false, error:err});
+      };
+      if(result.length === 0){
+        return res.json({success:false, error:"No companies available"});
+      }
+      return res.json({success:true, data:result});
+    });
+  } catch(err) {
     return res.json({success:false, error:err});
   };
 });
