@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const conn = require('./database/mysql');
+const fetchuser = require('./fetchuser');
 
 require('dotenv').config()
 
@@ -38,17 +39,17 @@ app.post("/api/newuser", (req, res) => {
         return res.json({ success: false, error: err });
       };
       try {
-        conn.query(sql, [ username, hash ], (err, result) => {
+        conn.query(sql, [username, hash], (err, result) => {
           if (err) {
             return res.json({ success: false, error: err });
           };
-          if(result.affectedRows){
-            return res.json({success:true, data:"", message:`${username} registered successfully`});
+          if (result.affectedRows) {
+            return res.json({ success: true, data: "", message: `${username} registered successfully` });
           } else {
-            return res.json({success:false, error:`${username} could not be registered`});
+            return res.json({ success: false, error: `${username} could not be registered` });
           };
         });
-      } catch(err) {
+      } catch (err) {
         return res.json({ success: false, error: err });
       };
     });
@@ -62,34 +63,36 @@ app.post("/api/login", (req, res) => {
   const sql = "SELECT * FROM users where username = ?";
   const { username, password } = req.body;
   try {
-    conn.query(sql, [ username ], (err, result) => {
+    conn.query(sql, [username], (err, result) => {
       if (err) {
-        return res.json({success:false, error:err});
+        return res.json({ success: false, error: err });
       };
-      if(result.length === 0){
-        return res.json({success:false, error:"Invalid username or password"});
+      if (result.length === 0) {
+        return res.json({ success: false, error: "Invalid username or password" });
       };
       bcrypt.compare(password, result[0].password, (err, validUser) => {
-        if(err) {
-          return res.json({success:false, error:err});
+        if (err) {
+          return res.json({ success: false, error: err });
         };
-        if(validUser){
-          const token = jwt.sign({ loggedinUser:username }, process.env.SECRET_KEY);
+        if (validUser) {
+          const username = result[0].username;
+          const token = jwt.sign({ loggedinUser: username }, process.env.SECRET_KEY);
           return res.json({
-            success:true, 
-            data:{
-              userid:result[0].id,
-              user:result[0].username,
-              token:token
-            }, 
-            message:`${username} logged in successfully`});
-          } else {
-            return res.json({success:false, error:"Invalid username or password"});
+            success: true,
+            data: {
+              userid: result[0].id,
+              user: result[0].username,
+              token: token
+            },
+            message: `${username} logged in successfully`
+          });
+        } else {
+          return res.json({ success: false, error: "Invalid username or password" });
         };
       });
     });
   } catch (err) {
-    return res.json({success:false, error:err});
+    return res.json({ success: false, error: err });
   };
 });
 
@@ -100,22 +103,84 @@ app.get("/api/companies", (req, res) => {
   const sql = "SELECT * from companies order by company";
   try {
     conn.query(sql, (err, result) => {
-      if(err) {
-        return res.json({success:false, error:err});
+      if (err) {
+        return res.json({ success: false, error: err });
       };
-      if(result.length === 0){
-        return res.json({success:false, error:"No companies available"});
+      if (result.length === 0) {
+        return res.json({ success: false, error: "No companies available" });
       }
-      return res.json({success:true, data:result});
+      return res.json({ success: true, data: result });
     });
-  } catch(err) {
-    return res.json({success:false, error:err});
+  } catch (err) {
+    return res.json({ success: false, error: err });
   };
 });
 
-// app.post("/api/buy", fetchusers, (req, res) => {
-//   const sql = "INSERT INTO portfolio (shareid, buydate, buyrate, buyqty, userid) VALUES (?, ?, ?, ?, ?) ";
-//   const {} = req.body
-// });
+/////////////////////////////////////////////////
+//List of Companies in format for Search Select//
+/////////////////////////////////////////////////
+app.get("/api/forselect", (req, res) => {
+  const sql = "SELECT id as value, company as label FROM companies";
+  try {
+    conn.query(sql, (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "No companies available" })
+      }
+      return res.json({ success: true, data: result });
+    });
+  } catch (err) {
+    return res.json({ success: false, error: err });
+  };
+});
+
+//////////////
+//Buy Shares//
+//////////////
+app.post("/api/buy", fetchuser, async (req, res) => {
+  let sql = "SELECT * FROM users WHERE username = ?";
+  const { shareid, buydate, buyrate, buyqty } = req.body;
+  try {
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "INSERT INTO portfolio (shareid, buydate, buyrate, buyqty, userid) VALUES (?, ?, ?, ?, ?)";
+      try {
+        conn.query(sql, [shareid, buydate, buyrate, buyqty, userid], (err, result) => {
+          if (err) {
+            return res.json({ success: false, error: err });
+          };
+          if (result.affectedRows) {
+            return res.json({
+              success: true,
+              newRecord: {
+                id: result.insertId,
+                shareid: shareid,
+                buydate: buydate,
+                buyrate: buyrate,
+                buyqty: buyqty,
+                userid: userid
+              },
+              message: "Record saves successfully"
+            });
+          } else {
+            return res.json({ success: false, error: "Record not saved" });
+          };
+        });
+      } catch (err) {
+        return res.json({ success: false, error: err });
+      };
+    });
+  } catch (err) {
+    return res.json({ success: false, error: err });
+  };
+});
 
 app.listen(5000);
