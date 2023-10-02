@@ -113,4 +113,9 @@ app.get("/api/companies", (req, res) => {
   };
 });
 
+// app.post("/api/buy", fetchusers, (req, res) => {
+//   const sql = "INSERT INTO portfolio (shareid, buydate, buyrate, buyqty, userid) VALUES (?, ?, ?, ?, ?) ";
+//   const {} = req.body
+// });
+
 app.listen(5000);
