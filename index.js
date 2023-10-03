@@ -248,7 +248,6 @@ app.get("/api/portfolio", fetchuser, async (req, res) => {
 ///////////////
 app.post("/api/sell", fetchuser, async (req, res) => {
   const { selldate, sellrate, sellqty, company } = req.body;
-  console.log(req.body);
   let sql = "SELECT * FROM users WHERE username = ?";
   try {
     conn.query(sql, [req.username], (err, result) => {
@@ -291,6 +290,74 @@ app.post("/api/sell", fetchuser, async (req, res) => {
       };
     });
   } catch (err) {
+    return res.json({ success: false, error: "Server Error" });
+  };
+});
+
+////////////////////////////////
+//List of all purchased shares//
+////////////////////////////////
+app.get("/api/allbuy", fetchuser, async (req, res) => {
+  let sql = "SELECT * FROM users WHERE username = ?";
+  try{
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "SELECT p.id, c.company, p.buydate AS date, p.buyqty AS qty, p.buyrate AS rate, (p.buyqty*p.buyrate) AS cost FROM purchases AS p LEFT JOIN companies AS c ON c.id = p.shareid WHERE p.userid = ?  ORDER BY p.buydate";
+      try{
+        conn.query(sql, [userid], (err, result) => {
+          if(err) {
+            return res.json({success:false, error:err});
+          };
+          if(result.length === 0){
+            return res.json({success:false, error:"No records to display"});
+          };
+          return res.json({success:true, data:result});
+        });
+      } catch(err) {
+        return res.json({ success: false, error: "Server Error" });    
+      };
+    });
+  } catch(err) {
+    return res.json({ success: false, error: "Server Error" });
+  };
+});
+
+////////////////////////////////
+//List of all purchased shares//
+////////////////////////////////
+app.get("/api/allsale", fetchuser, async (req, res) => {
+  let sql = "SELECT * FROM users WHERE username = ?";
+  try{
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "SELECT s.id, c.company, s.selldate AS date, s.sellqty AS qty, s.sellrate AS rate, (s.sellqty*s.sellrate) AS soldvalue FROM sales AS s LEFT JOIN companies AS c ON c.id = s.shareid WHERE s.userid = ?  ORDER BY s.selldate";
+      try{
+        conn.query(sql, [userid], (err, result) => {
+          if(err) {
+            return res.json({success:false, error:err});
+          };
+          if(result.length === 0){
+            return res.json({success:false, error:"No records to display"});
+          };
+          return res.json({success:true, data:result});
+        });
+      } catch(err) {
+        return res.json({ success: false, error: "Server Error" });    
+      };
+    });
+  } catch(err) {
     return res.json({ success: false, error: "Server Error" });
   };
 });
