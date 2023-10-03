@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 
 const fetchuser = (req, res, next) => {
   const token = req.header('token');
-  console.log("token:", token);
   if (!token) {
     return res.json({
       success: false,

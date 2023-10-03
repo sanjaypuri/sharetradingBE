@@ -183,4 +183,38 @@ app.post("/api/buy", fetchuser, async (req, res) => {
   };
 });
 
+//////////////////
+//Show Portfolio//
+/////////////////
+app.get("/api/portfolio", fetchuser, async (req, res) => {
+  let sql = "SELECT * FROM users WHERE username = ?";
+  try{
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "SELECT c.company, sum(p.buyqty-p.sellqty) as qtyinhand, sum((p.buyqty-p.sellqty)*p.buyrate) as purchasevalue from portfolio as p inner join companies as c on c.id = p.shareid where userid = ? group by c.company";
+      try{
+        conn.query(sql, [userid], (err, result) => {
+          if(err) {
+            return res.json({ success: false, error: err });
+          };
+          if(result.length===0){
+            return res.json({ success: false, error: "No data to show portfolio" });
+          };
+          return res.json({success:true, data:result});
+        });
+      } catch(err) {
+        return res.json({ success: false, error: err });
+      };
+    });
+    } catch(err) {
+    return res.json({ success: false, error: "Server Error" });
+  };
+});
+
 app.listen(5000);
