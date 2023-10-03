@@ -151,7 +151,7 @@ app.post("/api/buy", fetchuser, async (req, res) => {
         return res.json({ success: false, error: "User not found" });
       };
       const userid = result[0].id;
-      sql = "INSERT INTO portfolio (shareid, buydate, buyrate, buyqty, userid) VALUES (?, ?, ?, ?, ?)";
+      sql = "INSERT INTO purchases (shareid, buydate, buyrate, buyqty, userid) VALUES (?, ?, ?, ?, ?)";
       try {
         conn.query(sql, [shareid, buydate, buyrate, buyqty, userid], (err, result) => {
           if (err) {
@@ -188,7 +188,7 @@ app.post("/api/buy", fetchuser, async (req, res) => {
 /////////////////
 app.get("/api/portfolio", fetchuser, async (req, res) => {
   let sql = "SELECT * FROM users WHERE username = ?";
-  try{
+  try {
     conn.query(sql, [req.username], (err, result) => {
       if (err) {
         return res.json({ success: false, error: err });
@@ -197,22 +197,100 @@ app.get("/api/portfolio", fetchuser, async (req, res) => {
         return res.json({ success: false, error: "User not found" });
       };
       const userid = result[0].id;
-      sql = "SELECT c.company, sum(p.buyqty-p.sellqty) as qtyinhand, sum((p.buyqty-p.sellqty)*p.buyrate) as purchasevalue from portfolio as p inner join companies as c on c.id = p.shareid where userid = ? group by c.company";
-      try{
+      sql = "create or replace view v_sales as select c.company, sum(s.sellqty) as qty, avg(s.sellrate) as avgrate, sum(s.sellqty*s.sellrate) as salevalue from sales as s inner join companies as c on c.id = s.shareid where s.userid = ? group by c.company";
+      try {
         conn.query(sql, [userid], (err, result) => {
-          if(err) {
+          if (err) {
             return res.json({ success: false, error: err });
           };
-          if(result.length===0){
+          if (result.length === 0) {
             return res.json({ success: false, error: "No data to show portfolio" });
           };
-          return res.json({success:true, data:result});
+          sql = "create or replace view v_purchases as select c.company, sum(p.buyqty) as qty, avg(p.buyrate) as avgrate, sum(p.buyqty*p.buyrate) as cost from purchases as p inner join companies as c on c.id = p.shareid where p.userid = ? group by c.company";
+          try {
+            conn.query(sql, [userid], (err, result) => {
+              if (err) {
+                return res.json({ success: false, error: err });
+              };
+              if (result.length === 0) {
+                return res.json({ success: false, error: "No data to show portfolio" });
+              };
+              sql = "select p.company, (p.qty-ifnull(s.qty, 0)) as qtyinhand, p.avgrate, (p.cost-(ifnull(s.qty, 0)*p.avgrate)) as cost from v_purchases as p left join v_sales as s on p.company = s.company where (p.qty-ifnull(s.qty, 0)) > 0";
+              try {
+                conn.query(sql, [userid], (err, result) => {
+                  if (err) {
+                    return res.json({ success: false, error: err });
+                  };
+                  if (result.length === 0) {
+                    return res.json({ success: false, error: "No data to show portfolio" });
+                  };
+                  return res.json({ success: true, data: result });
+                });
+              } catch (err) {
+                return res.json({ success: false, error: err });
+              };
+            });
+          } catch (err) {
+            return res.json({ success: false, error: err });
+          };
         });
-      } catch(err) {
+      } catch (err) {
         return res.json({ success: false, error: err });
       };
     });
-    } catch(err) {
+  } catch (err) {
+    return res.json({ success: false, error: err });
+  };
+});
+
+///////////////
+//Sell Shares//
+///////////////
+app.post("/api/sell", fetchuser, async (req, res) => {
+  const { selldate, sellrate, sellqty, company } = req.body;
+  console.log(req.body);
+  let sql = "SELECT * FROM users WHERE username = ?";
+  try {
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "SELECT * from companies where company = ?";
+      try {
+        conn.query(sql, [company], (err, result) => {
+          if (err) {
+            return res.json({ success: false, error: err });
+          };
+          if (result.length === 0) {
+            return res.json({ success: false, error: "Error finding company" });
+          } else {
+            const shareid = result[0].id;
+            sql = "INSERT INTO sales (selldate, sellrate, sellqty, shareid, userid) VALUES (?, ?, ?, ?, ?)";
+            try {
+              conn.query(sql, [selldate, sellrate, sellqty, shareid, userid], (err, result) => {
+                if (err) {
+                  return res.json({ success: false, error: err });
+                };
+                if(result.affectedRows){
+                  return res.json({success:true, message:"Record saved successfully"});
+                } else {
+                  return res.json({success:false, error:"Record could not be saved"});
+                };
+              });
+            } catch (err) {
+              return res.json({ success: false, error: "Server Error" });
+            };
+          };
+        });
+      } catch (err) {
+        return res.json({ success: false, error: "Server Error" });
+      };
+    });
+  } catch (err) {
     return res.json({ success: false, error: "Server Error" });
   };
 });
