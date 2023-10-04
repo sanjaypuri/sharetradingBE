@@ -274,10 +274,10 @@ app.post("/api/sell", fetchuser, async (req, res) => {
                 if (err) {
                   return res.json({ success: false, error: err });
                 };
-                if(result.affectedRows){
-                  return res.json({success:true, message:"Record saved successfully"});
+                if (result.affectedRows) {
+                  return res.json({ success: true, message: "Record saved successfully" });
                 } else {
-                  return res.json({success:false, error:"Record could not be saved"});
+                  return res.json({ success: false, error: "Record could not be saved" });
                 };
               });
             } catch (err) {
@@ -299,7 +299,7 @@ app.post("/api/sell", fetchuser, async (req, res) => {
 ////////////////////////////////
 app.get("/api/allbuy", fetchuser, async (req, res) => {
   let sql = "SELECT * FROM users WHERE username = ?";
-  try{
+  try {
     conn.query(sql, [req.username], (err, result) => {
       if (err) {
         return res.json({ success: false, error: err });
@@ -309,21 +309,21 @@ app.get("/api/allbuy", fetchuser, async (req, res) => {
       };
       const userid = result[0].id;
       sql = "SELECT p.id, c.company, p.buydate AS date, p.buyqty AS qty, p.buyrate AS rate, (p.buyqty*p.buyrate) AS cost FROM purchases AS p LEFT JOIN companies AS c ON c.id = p.shareid WHERE p.userid = ?  ORDER BY p.buydate";
-      try{
+      try {
         conn.query(sql, [userid], (err, result) => {
-          if(err) {
-            return res.json({success:false, error:err});
+          if (err) {
+            return res.json({ success: false, error: err });
           };
-          if(result.length === 0){
-            return res.json({success:false, error:"No records to display"});
+          if (result.length === 0) {
+            return res.json({ success: false, error: "No records to display" });
           };
-          return res.json({success:true, data:result});
+          return res.json({ success: true, data: result });
         });
-      } catch(err) {
-        return res.json({ success: false, error: "Server Error" });    
+      } catch (err) {
+        return res.json({ success: false, error: "Server Error" });
       };
     });
-  } catch(err) {
+  } catch (err) {
     return res.json({ success: false, error: "Server Error" });
   };
 });
@@ -333,7 +333,7 @@ app.get("/api/allbuy", fetchuser, async (req, res) => {
 ////////////////////////////////
 app.get("/api/allsale", fetchuser, async (req, res) => {
   let sql = "SELECT * FROM users WHERE username = ?";
-  try{
+  try {
     conn.query(sql, [req.username], (err, result) => {
       if (err) {
         return res.json({ success: false, error: err });
@@ -343,22 +343,82 @@ app.get("/api/allsale", fetchuser, async (req, res) => {
       };
       const userid = result[0].id;
       sql = "SELECT s.id, c.company, s.selldate AS date, s.sellqty AS qty, s.sellrate AS rate, (s.sellqty*s.sellrate) AS soldvalue FROM sales AS s LEFT JOIN companies AS c ON c.id = s.shareid WHERE s.userid = ?  ORDER BY s.selldate";
-      try{
+      try {
         conn.query(sql, [userid], (err, result) => {
-          if(err) {
-            return res.json({success:false, error:err});
+          if (err) {
+            return res.json({ success: false, error: err });
           };
-          if(result.length === 0){
-            return res.json({success:false, error:"No records to display"});
+          if (result.length === 0) {
+            return res.json({ success: false, error: "No records to display" });
           };
-          return res.json({success:true, data:result});
+          return res.json({ success: true, data: result });
         });
-      } catch(err) {
-        return res.json({ success: false, error: "Server Error" });    
+      } catch (err) {
+        return res.json({ success: false, error: "Server Error" });
       };
     });
-  } catch(err) {
+  } catch (err) {
     return res.json({ success: false, error: "Server Error" });
+  };
+});
+
+///////////////////
+//Realized Profit//
+///////////////////
+app.get("/api/realgain", fetchuser, async (req, res) => {
+  let sql = "SELECT * FROM users WHERE username = ?";
+  try {
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "create or replace view v_sales as select c.company, sum(s.sellqty) as qty, avg(s.sellrate) as avgrate, sum(s.sellqty*s.sellrate) as salevalue from sales as s inner join companies as c on c.id = s.shareid where s.userid = ? group by c.company";
+      try {
+        conn.query(sql, [userid], (err, result) => {
+          if (err) {
+            return res.json({ success: false, error: err });
+          };
+          if (result.length === 0) {
+            return res.json({ success: false, error: "No data to show portfolio" });
+          };
+          sql = "create or replace view v_purchases as select c.company, sum(p.buyqty) as qty, avg(p.buyrate) as avgrate, sum(p.buyqty*p.buyrate) as cost from purchases as p inner join companies as c on c.id = p.shareid where p.userid = ? group by c.company";
+          try {
+            conn.query(sql, [userid], (err, result) => {
+              if (err) {
+                return res.json({ success: false, error: err });
+              };
+              if (result.length === 0) {
+                return res.json({ success: false, error: "No data to show portfolio" });
+              };
+              sql = "select s.company, s.qty as qty, s.avgrate as salerate, p.avgrate as purrate, s.salevalue, (s.avgrate-p.avgrate)*s.qty as gain from v_sales as s inner join v_purchases as p on s.company = p.company";
+              try {
+                conn.query(sql, [userid], (err, result) => {
+                  if (err) {
+                    return res.json({ success: false, error: err });
+                  };
+                  if (result.length === 0) {
+                    return res.json({ success: false, error: "No data to show portfolio" });
+                  };
+                  return res.json({ success: true, data: result });
+                });
+              } catch (err) {
+                return res.json({ success: false, error: err });
+              };
+            });
+          } catch (err) {
+            return res.json({ success: false, error: err });
+          };
+        });
+      } catch (err) {
+        return res.json({ success: false, error: err });
+      };
+    });
+  } catch (err) {
+    return res.json({ success: false, error: err });
   };
 });
 
