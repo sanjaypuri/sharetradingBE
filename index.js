@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const conn = require('./database/mysql');
 const fetchuser = require('./fetchuser');
+// const { parse } = require('dotenv');
 
 require('dotenv').config()
 
@@ -151,9 +152,9 @@ app.post("/api/buy", fetchuser, async (req, res) => {
         return res.json({ success: false, error: "User not found" });
       };
       const userid = result[0].id;
-      sql = "INSERT INTO purchases (shareid, buydate, buyrate, buyqty, userid) VALUES (?, ?, ?, ?, ?)";
+      sql = "INSERT INTO transactions (shareid, tdate, qty, rate, userid) VALUES (?, ?, ?, ?, ?)";
       try {
-        conn.query(sql, [shareid, buydate, buyrate, buyqty, userid], (err, result) => {
+        conn.query(sql, [shareid, buydate, buyqty, buyrate, userid], (err, result) => {
           if (err) {
             return res.json({ success: false, error: err });
           };
@@ -164,8 +165,8 @@ app.post("/api/buy", fetchuser, async (req, res) => {
                 id: result.insertId,
                 shareid: shareid,
                 buydate: buydate,
-                buyrate: buyrate,
                 buyqty: buyqty,
+                buyrate: buyrate,
                 userid: userid
               },
               message: "Record saves successfully"
@@ -183,9 +184,9 @@ app.post("/api/buy", fetchuser, async (req, res) => {
   };
 });
 
-//////////////////
-//Show Portfolio//
-/////////////////
+/////////////
+//portfolio//
+/////////////
 app.get("/api/portfolio", fetchuser, async (req, res) => {
   let sql = "SELECT * FROM users WHERE username = ?";
   try {
@@ -197,7 +198,7 @@ app.get("/api/portfolio", fetchuser, async (req, res) => {
         return res.json({ success: false, error: "User not found" });
       };
       const userid = result[0].id;
-      sql = "create or replace view v_sales as select c.company, sum(s.sellqty) as qty, avg(s.sellrate) as avgrate, sum(s.sellqty*s.sellrate) as salevalue from sales as s inner join companies as c on c.id = s.shareid where s.userid = ? group by c.company";
+      sql = "SELECT c.company, sum(t.qty) AS qty, avg(t.rate) as avgrate, sum(t.rate*t.qty) AS avgcost FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ? GROUP BY c.company HAVING sum(t.qty) > 0";
       try {
         conn.query(sql, [userid], (err, result) => {
           if (err) {
@@ -206,40 +207,29 @@ app.get("/api/portfolio", fetchuser, async (req, res) => {
           if (result.length === 0) {
             return res.json({ success: false, error: "No data to show portfolio" });
           };
-          sql = "create or replace view v_purchases as select c.company, sum(p.buyqty) as qty, avg(p.buyrate) as avgrate, sum(p.buyqty*p.buyrate) as cost from purchases as p inner join companies as c on c.id = p.shareid where p.userid = ? group by c.company";
+          portfolio = result;
+          sql = "SELECT t.shareid, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount, t.purchaserate FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ?";
           try {
             conn.query(sql, [userid], (err, result) => {
               if (err) {
                 return res.json({ success: false, error: err });
               };
               if (result.length === 0) {
-                return res.json({ success: false, error: "No data to show portfolio" });
+                return res.json({ success: false, error: "No data on transactions" });
               };
-              sql = "select p.company, (p.qty-ifnull(s.qty, 0)) as qtyinhand, p.avgrate, (p.cost-(ifnull(s.qty, 0)*p.avgrate)) as cost from v_purchases as p left join v_sales as s on p.company = s.company where (p.qty-ifnull(s.qty, 0)) > 0";
-              try {
-                conn.query(sql, [userid], (err, result) => {
-                  if (err) {
-                    return res.json({ success: false, error: err });
-                  };
-                  if (result.length === 0) {
-                    return res.json({ success: false, error: "No data to show portfolio" });
-                  };
-                  return res.json({ success: true, data: result });
-                });
-              } catch (err) {
-                return res.json({ success: false, error: err });
-              };
+              transactions = result;
+              return res.json({success:true, portfolio:portfolio, transactions:transactions});
             });
           } catch (err) {
-            return res.json({ success: false, error: err });
+            return res.json({ success: false, error: "Server Error" });
           };
         });
       } catch (err) {
-        return res.json({ success: false, error: err });
+        return res.json({ success: false, error: "Server Error" });
       };
     });
   } catch (err) {
-    return res.json({ success: false, error: err });
+    return res.json({ success: false, error: "Server Error" });
   };
 });
 
@@ -268,9 +258,9 @@ app.post("/api/sell", fetchuser, async (req, res) => {
             return res.json({ success: false, error: "Error finding company" });
           } else {
             const shareid = result[0].id;
-            sql = "INSERT INTO sales (selldate, sellrate, sellqty, shareid, userid) VALUES (?, ?, ?, ?, ?)";
+            sql = "INSERT INTO transactions (shareid, tdate, qty, rate, userid) VALUES (?, ?, ?, ?, ?)";
             try {
-              conn.query(sql, [selldate, sellrate, sellqty, shareid, userid], (err, result) => {
+              conn.query(sql, [shareid, tdate, qty, rate, userid], (err, result) => {
                 if (err) {
                   return res.json({ success: false, error: err });
                 };
@@ -308,7 +298,7 @@ app.get("/api/allbuy", fetchuser, async (req, res) => {
         return res.json({ success: false, error: "User not found" });
       };
       const userid = result[0].id;
-      sql = "SELECT p.id, c.company, p.buydate AS date, p.buyqty AS qty, p.buyrate AS rate, (p.buyqty*p.buyrate) AS cost FROM purchases AS p LEFT JOIN companies AS c ON c.id = p.shareid WHERE p.userid = ?  ORDER BY p.buydate";
+      sql = "SELECT t.id, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount, issold FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ? and t.qty > 0 order by t.tdate";
       try {
         conn.query(sql, [userid], (err, result) => {
           if (err) {
@@ -328,9 +318,9 @@ app.get("/api/allbuy", fetchuser, async (req, res) => {
   };
 });
 
-////////////////////////////////
-//List of all purchased shares//
-////////////////////////////////
+////////////////////////////
+//List of all sold shares//
+///////////////////////////
 app.get("/api/allsale", fetchuser, async (req, res) => {
   let sql = "SELECT * FROM users WHERE username = ?";
   try {
@@ -342,7 +332,7 @@ app.get("/api/allsale", fetchuser, async (req, res) => {
         return res.json({ success: false, error: "User not found" });
       };
       const userid = result[0].id;
-      sql = "SELECT s.id, c.company, s.selldate AS date, s.sellqty AS qty, s.sellrate AS rate, (s.sellqty*s.sellrate) AS soldvalue FROM sales AS s LEFT JOIN companies AS c ON c.id = s.shareid WHERE s.userid = ?  ORDER BY s.selldate";
+      sql = "SELECT t.id, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount, issold FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ? and t.qty < 0 order by t.tdate";
       try {
         conn.query(sql, [userid], (err, result) => {
           if (err) {
@@ -359,66 +349,6 @@ app.get("/api/allsale", fetchuser, async (req, res) => {
     });
   } catch (err) {
     return res.json({ success: false, error: "Server Error" });
-  };
-});
-
-///////////////////
-//Realized Profit//
-///////////////////
-app.get("/api/realgain", fetchuser, async (req, res) => {
-  let sql = "SELECT * FROM users WHERE username = ?";
-  try {
-    conn.query(sql, [req.username], (err, result) => {
-      if (err) {
-        return res.json({ success: false, error: err });
-      };
-      if (result.length === 0) {
-        return res.json({ success: false, error: "User not found" });
-      };
-      const userid = result[0].id;
-      sql = "create or replace view v_sales as select c.company, sum(s.sellqty) as qty, avg(s.sellrate) as avgrate, sum(s.sellqty*s.sellrate) as salevalue from sales as s inner join companies as c on c.id = s.shareid where s.userid = ? group by c.company";
-      try {
-        conn.query(sql, [userid], (err, result) => {
-          if (err) {
-            return res.json({ success: false, error: err });
-          };
-          if (result.length === 0) {
-            return res.json({ success: false, error: "No data to show portfolio" });
-          };
-          sql = "create or replace view v_purchases as select c.company, sum(p.buyqty) as qty, avg(p.buyrate) as avgrate, sum(p.buyqty*p.buyrate) as cost from purchases as p inner join companies as c on c.id = p.shareid where p.userid = ? group by c.company";
-          try {
-            conn.query(sql, [userid], (err, result) => {
-              if (err) {
-                return res.json({ success: false, error: err });
-              };
-              if (result.length === 0) {
-                return res.json({ success: false, error: "No data to show portfolio" });
-              };
-              sql = "select s.company, s.qty as qty, s.avgrate as salerate, p.avgrate as purrate, s.salevalue, (s.avgrate-p.avgrate)*s.qty as gain from v_sales as s inner join v_purchases as p on s.company = p.company";
-              try {
-                conn.query(sql, [userid], (err, result) => {
-                  if (err) {
-                    return res.json({ success: false, error: err });
-                  };
-                  if (result.length === 0) {
-                    return res.json({ success: false, error: "No data to show portfolio" });
-                  };
-                  return res.json({ success: true, data: result });
-                });
-              } catch (err) {
-                return res.json({ success: false, error: err });
-              };
-            });
-          } catch (err) {
-            return res.json({ success: false, error: err });
-          };
-        });
-      } catch (err) {
-        return res.json({ success: false, error: err });
-      };
-    });
-  } catch (err) {
-    return res.json({ success: false, error: err });
   };
 });
 
