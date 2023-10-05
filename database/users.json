@@ -1,0 +1,10 @@
+[
+{"type":"header","version":"5.2.1","comment":"Export to JSON plugin for PHPMyAdmin"},
+{"type":"database","name":"sharestrading"},
+{"type":"table","name":"users","database":"sharestrading","data":
+[
+{"id":"1","username":"Sanjay Puri","password":"$2b$10$P3LR.ddrig2Xy4IaZyEycemnrtv.qADH7Y2RTPe68lcSaSE09YrY.","created":"2023-10-02 17:37:38"},
+{"id":"2","username":"Shobit Puri","password":"$2b$10$Z8yb3OqRh7GKG29U3Zixo.5LfLb\/6vhDzCuFg1Mm8dufVYwdRX0PO","created":"2023-10-02 20:46:30"}
+]
+}
+]
