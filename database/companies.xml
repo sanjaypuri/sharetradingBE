@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+- phpMyAdmin XML Dump
+- version 5.2.1
+- https://www.phpmyadmin.net
+-
+- Host: 127.0.0.1
+- Generation Time: Oct 05, 2023 at 06:28 PM
+- Server version: 10.4.28-MariaDB
+- PHP Version: 8.2.4
+-->
+
+<pma_xml_export version="1.0" xmlns:pma="https://www.phpmyadmin.net/some_doc_url/">
+    <!--
+    - Structure schemas
+    -->
+    <pma:structure_schemas>
+        <pma:database name="sharestrading" collation="utf8mb4_general_ci" charset="utf8mb4">
+            <pma:table name="companies">
+                CREATE TABLE `companies` (
+                  `id` int(4) NOT NULL AUTO_INCREMENT,
+                  `company` varchar(50) NOT NULL,
+                  `code` varchar(15) DEFAULT NULL,
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+            </pma:table>
+        </pma:database>
+    </pma:structure_schemas>
+
+    <!--
+    - Database: 'sharestrading'
+    -->
+    <database name="sharestrading">
+        <!-- Table companies -->
+        <table name="companies">
+            <column name="id">1</column>
+            <column name="company">Adani Enterprises Ltd</column>
+            <column name="code">ADANIENT</column>
+        </table>
+        <table name="companies">
+            <column name="id">2</column>
+            <column name="company">Adani Ports and Special Economic Zone Ltd</column>
+            <column name="code">ADANIPORTS</column>
+        </table>
+        <table name="companies">
+            <column name="id">3</column>
+            <column name="company">Apollo Hospitals Enterprise Ltd</column>
+            <column name="code">APOLLOHOSP</column>
+        </table>
+        <table name="companies">
+            <column name="id">4</column>
+            <column name="company">Ashok Leyland Ltd</column>
+            <column name="code">ASHOKLEY</column>
+        </table>
+        <table name="companies">
+            <column name="id">5</column>
+            <column name="company">Asian Paints Ltd</column>
+            <column name="code">ASIANPAINT</column>
+        </table>
+        <table name="companies">
+            <column name="id">6</column>
+            <column name="company">Axis Bank Ltd</column>
+            <column name="code">AXISBANK</column>
+        </table>
+        <table name="companies">
+            <column name="id">7</column>
+            <column name="company">Bajaj Auto Ltd</column>
+            <column name="code">BAJAJ-AUTO</column>
+        </table>
+        <table name="companies">
+            <column name="id">8</column>
+            <column name="company">Bajaj Finance Ltd</column>
+            <column name="code">BAJFINANCE</column>
+        </table>
+        <table name="companies">
+            <column name="id">9</column>
+            <column name="company">Bajaj Finserv Ltd</column>
+            <column name="code">BAJAJFINSV</column>
+        </table>
+        <table name="companies">
+            <column name="id">10</column>
+            <column name="company">Bharat Forge Ltd</column>
+            <column name="code">BHARATFORG</column>
+        </table>
+        <table name="companies">
+            <column name="id">11</column>
+            <column name="company">Bharat Petroleum Corporation Ltd</column>
+            <column name="code">BPCL</column>
+        </table>
+        <table name="companies">
+            <column name="id">12</column>
+            <column name="company">Bharti Airtel Ltd</column>
+            <column name="code">BHARTIARTL</column>
+        </table>
+        <table name="companies">
+            <column name="id">13</column>
+            <column name="company">Britannia Industries Ltd</column>
+            <column name="code">BRITANNIA</column>
+        </table>
+        <table name="companies">
+            <column name="id">14</column>
+            <column name="company">Cipla Ltd</column>
+            <column name="code">CIPLA</column>
+        </table>
+        <table name="companies">
+            <column name="id">15</column>
+            <column name="company">Coal India Ltd</column>
+            <column name="code">COALINDIA</column>
+        </table>
+        <table name="companies">
+            <column name="id">16</column>
+            <column name="company">Divis Laboratories Ltd</column>
+            <column name="code">DIVISLAB</column>
+        </table>
+        <table name="companies">
+            <column name="id">17</column>
+            <column name="company">Dr. Reddys Laboratories Ltd</column>
+            <column name="code">DRREDDY</column>
+        </table>
+        <table name="companies">
+            <column name="id">18</column>
+            <column name="company">Eicher Motors Ltd</column>
+            <column name="code">EICHERMOT</column>
+        </table>
+        <table name="companies">
+            <column name="id">19</column>
+            <column name="company">Grasim Industries Ltd</column>
+            <column name="code">GRASIM</column>
+        </table>
+        <table name="companies">
+            <column name="id">20</column>
+            <column name="company">Havells India Ltd</column>
+            <column name="code">HAVELLS</column>
+        </table>
+        <table name="companies">
+            <column name="id">21</column>
+            <column name="company">HCL Technologies Ltd</column>
+            <column name="code">HCLTECH</column>
+        </table>
+        <table name="companies">
+            <column name="id">22</column>
+            <column name="company">HDFC Bank Ltd</column>
+            <column name="code">HDFCBANK</column>
+        </table>
+        <table name="companies">
+            <column name="id">23</column>
+            <column name="company">HDFC Life Insurance Co Ltd</column>
+            <column name="code">HDFCLIFE</column>
+        </table>
+        <table name="companies">
+            <column name="id">24</column>
+            <column name="company">Hero MotoCorp Ltd</column>
+            <column name="code">HEROMOTOCO</column>
+        </table>
+        <table name="companies">
+            <column name="id">25</column>
+            <column name="company">Hindalco Industries Ltd</column>
+            <column name="code">HINDALCO</column>
+        </table>
+        <table name="companies">
+            <column name="id">26</column>
+            <column name="company">Hindustan Unilever Ltd</column>
+            <column name="code">HINDUNILVR</column>
+        </table>
+        <table name="companies">
+            <column name="id">27</column>
+            <column name="company">Housing Development Finance Corporation Ltd</column>
+            <column name="code">HDFC</column>
+        </table>
+        <table name="companies">
+            <column name="id">28</column>
+            <column name="company">ICICI Bank Ltd</column>
+            <column name="code">ICICIBANK</column>
+        </table>
+        <table name="companies">
+            <column name="id">29</column>
+            <column name="company">IndusInd Bank Ltd</column>
+            <column name="code">INDUSINDBK</column>
+        </table>
+        <table name="companies">
+            <column name="id">30</column>
+            <column name="company">Infosys Ltd</column>
+            <column name="code">INFY</column>
+        </table>
+        <table name="companies">
+            <column name="id">31</column>
+            <column name="company">ITC Ltd</column>
+            <column name="code">ITC</column>
+        </table>
+        <table name="companies">
+            <column name="id">32</column>
+            <column name="company">JSW Steel Ltd</column>
+            <column name="code">JSWSTEEL</column>
+        </table>
+        <table name="companies">
+            <column name="id">33</column>
+            <column name="company">Kotak Mahindra Bank Ltd</column>
+            <column name="code">KOTAKBANK</column>
+        </table>
+        <table name="companies">
+            <column name="id">34</column>
+            <column name="company">Larsen &amp; Toubro Ltd</column>
+            <column name="code">LT</column>
+        </table>
+        <table name="companies">
+            <column name="id">35</column>
+            <column name="company">Mahindra &amp; Mahindra Ltd</column>
+            <column name="code">M&amp;M</column>
+        </table>
+        <table name="companies">
+            <column name="id">36</column>
+            <column name="company">Maruti Suzuki India Ltd</column>
+            <column name="code">MARUTI</column>
+        </table>
+        <table name="companies">
+            <column name="id">37</column>
+            <column name="company">Nestle India Ltd</column>
+            <column name="code">NESTLEIND</column>
+        </table>
+        <table name="companies">
+            <column name="id">38</column>
+            <column name="company">NTPC Ltd</column>
+            <column name="code">NTPC</column>
+        </table>
+        <table name="companies">
+            <column name="id">39</column>
+            <column name="company">Oil &amp; Natural Gas Corporation Ltd</column>
+            <column name="code">ONGC</column>
+        </table>
+        <table name="companies">
+            <column name="id">40</column>
+            <column name="company">Power Grid Corporation Of India Ltd</column>
+            <column name="code">POWERGRID</column>
+        </table>
+        <table name="companies">
+            <column name="id">41</column>
+            <column name="company">Reliance Industries Ltd</column>
+            <column name="code">RELIANCE</column>
+        </table>
+        <table name="companies">
+            <column name="id">42</column>
+            <column name="company">SBI Life Insurance Company Ltd</column>
+            <column name="code">SBILIFE</column>
+        </table>
+        <table name="companies">
+            <column name="id">43</column>
+            <column name="company">State Bank Of India</column>
+            <column name="code">SBIN</column>
+        </table>
+        <table name="companies">
+            <column name="id">44</column>
+            <column name="company">Sun Pharmaceutical Industries Ltd</column>
+            <column name="code">SUNPHARMA</column>
+        </table>
+        <table name="companies">
+            <column name="id">45</column>
+            <column name="company">Tata Consultancy Services Ltd</column>
+            <column name="code">TCS</column>
+        </table>
+        <table name="companies">
+            <column name="id">46</column>
+            <column name="company">Tata Consumer Products Ltd</column>
+            <column name="code">TATACONSUM</column>
+        </table>
+        <table name="companies">
+            <column name="id">47</column>
+            <column name="company">Tata Motors Ltd</column>
+            <column name="code">TATAMOTORS</column>
+        </table>
+        <table name="companies">
+            <column name="id">48</column>
+            <column name="company">Tata Steel Ltd</column>
+            <column name="code">TATASTEEL</column>
+        </table>
+        <table name="companies">
+            <column name="id">49</column>
+            <column name="company">Tech Mahindra Ltd</column>
+            <column name="code">TECHM</column>
+        </table>
+        <table name="companies">
+            <column name="id">50</column>
+            <column name="company">Titan Company Ltd</column>
+            <column name="code">TITAN</column>
+        </table>
+        <table name="companies">
+            <column name="id">51</column>
+            <column name="company">Ultratech Cement Ltd</column>
+            <column name="code">ULTRACEMCO</column>
+        </table>
+        <table name="companies">
+            <column name="id">52</column>
+            <column name="company">UPL Ltd</column>
+            <column name="code">UPL</column>
+        </table>
+        <table name="companies">
+            <column name="id">53</column>
+            <column name="company">Wipro Ltd</column>
+            <column name="code">WIPRO</column>
+        </table>
+    </database>
+</pma_xml_export>

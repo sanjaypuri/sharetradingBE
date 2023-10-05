@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+- phpMyAdmin XML Dump
+- version 5.2.1
+- https://www.phpmyadmin.net
+-
+- Host: 127.0.0.1
+- Generation Time: Oct 05, 2023 at 06:30 PM
+- Server version: 10.4.28-MariaDB
+- PHP Version: 8.2.4
+-->
+
+<pma_xml_export version="1.0" xmlns:pma="https://www.phpmyadmin.net/some_doc_url/">
+    <!--
+    - Structure schemas
+    -->
+    <pma:structure_schemas>
+        <pma:database name="sharestrading" collation="utf8mb4_general_ci" charset="utf8mb4">
+            <pma:table name="transactions">
+                CREATE TABLE `transactions` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `shareid` int(11) NOT NULL,
+                  `tdate` date NOT NULL,
+                  `qty` int(11) NOT NULL,
+                  `rate` decimal(10,2) NOT NULL,
+                  `userid` int(11) NOT NULL,
+                  PRIMARY KEY (`id`),
+                  KEY `fk_company` (`shareid`),
+                  CONSTRAINT `fk_company` FOREIGN KEY (`shareid`) REFERENCES `companies` (`id`) ON DELETE CASCADE
+                ) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+            </pma:table>
+        </pma:database>
+    </pma:structure_schemas>
+
+    <!--
+    - Database: 'sharestrading'
+    -->
+    <database name="sharestrading">
+        <!-- Table transactions -->
+        <table name="transactions">
+            <column name="id">32</column>
+            <column name="shareid">34</column>
+            <column name="tdate">2023-03-15</column>
+            <column name="qty">15</column>
+            <column name="rate">2182.55</column>
+            <column name="userid">1</column>
+        </table>
+        <table name="transactions">
+            <column name="id">33</column>
+            <column name="shareid">33</column>
+            <column name="tdate">2023-03-15</column>
+            <column name="qty">15</column>
+            <column name="rate">1676.75</column>
+            <column name="userid">1</column>
+        </table>
+        <table name="transactions">
+            <column name="id">34</column>
+            <column name="shareid">33</column>
+            <column name="tdate">2023-03-16</column>
+            <column name="qty">-15</column>
+            <column name="rate">1670.00</column>
+            <column name="userid">1</column>
+        </table>
+        <table name="transactions">
+            <column name="id">35</column>
+            <column name="shareid">31</column>
+            <column name="tdate">2023-03-22</column>
+            <column name="qty">85</column>
+            <column name="rate">376.85</column>
+            <column name="userid">1</column>
+        </table>
+        <table name="transactions">
+            <column name="id">36</column>
+            <column name="shareid">22</column>
+            <column name="tdate">2023-03-22</column>
+            <column name="qty">20</column>
+            <column name="rate">1572.00</column>
+            <column name="userid">1</column>
+        </table>
+        <table name="transactions">
+            <column name="id">37</column>
+            <column name="shareid">22</column>
+            <column name="tdate">2023-03-24</column>
+            <column name="qty">2</column>
+            <column name="rate">1566.50</column>
+            <column name="userid">1</column>
+        </table>
+        <table name="transactions">
+            <column name="id">38</column>
+            <column name="shareid">34</column>
+            <column name="tdate">2023-05-10</column>
+            <column name="qty">-15</column>
+            <column name="rate">2365.00</column>
+            <column name="userid">1</column>
+        </table>
+        <table name="transactions">
+            <column name="id">39</column>
+            <column name="shareid">31</column>
+            <column name="tdate">2023-05-09</column>
+            <column name="qty">-85</column>
+            <column name="rate">426.25</column>
+            <column name="userid">1</column>
+        </table>
+        <table name="transactions">
+            <column name="id">40</column>
+            <column name="shareid">22</column>
+            <column name="tdate">2023-05-10</column>
+            <column name="qty">-22</column>
+            <column name="rate">1635.35</column>
+            <column name="userid">1</column>
+        </table>
+    </database>
+</pma_xml_export>
