@@ -5,7 +5,7 @@ const fetchuser = (req, res, next) => {
   if (!token) {
     return res.json({
       success: false,
-      error: "You are not authorized to view these records"
+      error: "You are not authorized, Please login to get access"
     });
   };
   try {

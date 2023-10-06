@@ -26,7 +26,7 @@ app.use(cors(
 ));
 
 ////////////////
-//Add new User//OK
+//Add new User//
 ///////////////
 app.post("/api/newuser", (req, res) => {
   const sql = "INSERT INTO users (username, password) VALUES (?, ?)";
@@ -58,7 +58,7 @@ app.post("/api/newuser", (req, res) => {
 });
 
 //////////////
-//User Login//OK
+//User Login//
 /////////////
 app.post("/api/login", (req, res) => {
   const sql = "SELECT * FROM users where username = ?";
@@ -97,28 +97,8 @@ app.post("/api/login", (req, res) => {
   };
 });
 
-/////////////////////
-//List of Companies//Not Required
-////////////////////
-// app.get("/api/companies", (req, res) => {
-//   const sql = "SELECT * from companies order by company";
-//   try {
-//     conn.query(sql, (err, result) => {
-//       if (err) {
-//         return res.json({ success: false, error: err });
-//       };
-//       if (result.length === 0) {
-//         return res.json({ success: false, error: "No companies available" });
-//       }
-//       return res.json({ success: true, data: result });
-//     });
-//   } catch (err) {
-//     return res.json({ success: false, error: err });
-//   };
-// });
-
 /////////////////////////////////////////////////
-//List of Companies in format for Search Select//OK
+//List of Companies in format for Search Select//
 /////////////////////////////////////////////////
 app.get("/api/forselect", (req, res) => {
   const sql = "SELECT id as value, company as label FROM companies";
@@ -137,55 +117,8 @@ app.get("/api/forselect", (req, res) => {
   };
 });
 
-//////////////
-//Buy Shares//OK
-//////////////
-app.post("/api/buy", fetchuser, async (req, res) => {
-  let sql = "SELECT * FROM users WHERE username = ?";
-  const { shareid, buydate, buyrate, buyqty } = req.body;
-  try {
-    conn.query(sql, [req.username], (err, result) => {
-      if (err) {
-        return res.json({ success: false, error: err });
-      };
-      if (result.length === 0) {
-        return res.json({ success: false, error: "User not found" });
-      };
-      const userid = result[0].id;
-      sql = "INSERT INTO transactions (shareid, tdate, qty, rate, userid) VALUES (?, ?, ?, ?, ?)";
-      try {
-        conn.query(sql, [shareid, buydate, buyqty, buyrate, userid], (err, result) => {
-          if (err) {
-            return res.json({ success: false, error: err });
-          };
-          if (result.affectedRows) {
-            return res.json({
-              success: true,
-              newRecord: {
-                id: result.insertId,
-                shareid: shareid,
-                buydate: buydate,
-                buyqty: buyqty,
-                buyrate: buyrate,
-                userid: userid
-              },
-              message: "Record saves successfully"
-            });
-          } else {
-            return res.json({ success: false, error: "Record not saved" });
-          };
-        });
-      } catch (err) {
-        return res.json({ success: false, error: err });
-      };
-    });
-  } catch (err) {
-    return res.json({ success: false, error: err });
-  };
-});
-
 /////////////
-//portfolio//OK
+//portfolio//
 /////////////
 app.get("/api/portfolio", fetchuser, async (req, res) => {
   let sql = "SELECT * FROM users WHERE username = ?";
@@ -243,8 +176,55 @@ app.get("/api/portfolio", fetchuser, async (req, res) => {
   };
 });
 
+//////////////
+//Buy Shares//
+//////////////
+app.post("/api/buy", fetchuser, async (req, res) => {
+  let sql = "SELECT * FROM users WHERE username = ?";
+  const { shareid, buydate, buyrate, buyqty } = req.body;
+  try {
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "INSERT INTO transactions (shareid, tdate, qty, rate, userid) VALUES (?, ?, ?, ?, ?)";
+      try {
+        conn.query(sql, [shareid, buydate, buyqty, buyrate, userid], (err, result) => {
+          if (err) {
+            return res.json({ success: false, error: err });
+          };
+          if (result.affectedRows) {
+            return res.json({
+              success: true,
+              newRecord: {
+                id: result.insertId,
+                shareid: shareid,
+                buydate: buydate,
+                buyqty: buyqty,
+                buyrate: buyrate,
+                userid: userid
+              },
+              message: "Record saves successfully"
+            });
+          } else {
+            return res.json({ success: false, error: "Record not saved" });
+          };
+        });
+      } catch (err) {
+        return res.json({ success: false, error: err });
+      };
+    });
+  } catch (err) {
+    return res.json({ success: false, error: err });
+  };
+});
+
 ///////////////
-//Sell Shares//OK
+//Sell Shares//
 ///////////////
 app.post("/api/sell", fetchuser, async (req, res) => {
   const { tdate, rate, qty, shareid } = req.body;
@@ -279,44 +259,8 @@ app.post("/api/sell", fetchuser, async (req, res) => {
   };
 });
 
-///////////////
-//Sell Update//Not Required
-///////////////
-// app.put("/api/sellupdate", fetchuser, async (req, res) => {
-//   const { id, purrate, issold, saleqty } = req.body;
-//   // sql = "SELECT * from companies where company = ?";
-//   // try {
-//   // conn.query(sql, [req.username], (err, result) => {
-//   // if (err) {
-//   //   return res.json({ success: false, error: err });
-//   // };
-//   // if (result.length === 0) {
-//   //   return res.json({ success: false, error: "User not found" });
-//   // };
-//   // const userid = result[0].id;
-//   sql = "UPDATE transactions SET purchaserate = ?, issold = ?, soldqty = ? WHERE id = ?";
-//   try {
-//     conn.query(sql, [purrate, issold, saleqty, id], (err, result));
-//     if (err) {
-//       return res.json({ success: false, error: err });
-//     };
-//     if (result.affectedRows) {
-//       return res.json({ success: true, message: "Record saved successfully" });
-//     } else {
-//       return res.json({ success: false, error: "Record could not be saved" });
-//     };
-//   } catch (err) {
-//     console.log(err);
-//     return res.json({ success: false, error: "Server Error" });
-//   };
-//   // });
-//   // } catch (err) {
-//   //   return res.json({ success: false, error: "Server Error" });
-//   // };
-// });
-
 ////////////////////////////////
-//List of all purchased shares//OK
+//List of all purchased shares//
 ////////////////////////////////
 app.get("/api/allbuy", fetchuser, async (req, res) => {
   let sql = "SELECT * FROM users WHERE username = ?";
@@ -364,7 +308,7 @@ app.get("/api/allbuy", fetchuser, async (req, res) => {
 });
 
 ////////////////////////////
-//List of all sold shares//OK
+//List of all sold shares//
 ///////////////////////////
 app.get("/api/allsale", fetchuser, async (req, res) => {
   let sql = "SELECT * FROM users WHERE username = ?";
@@ -397,47 +341,11 @@ app.get("/api/allsale", fetchuser, async (req, res) => {
   };
 });
 
-///////////////////
-//Shares for Sale//Not Required
-///////////////////
-// app.get("/api/forsale", fetchuser, async (req, res) => {
-//   let sql = "SELECT * FROM users WHERE username = ?";
-//   try {
-//     conn.query(sql, [req.username], (err, result) => {
-//       if (err) {
-//         return res.json({ success: false, error: err });
-//       };
-//       if (result.length === 0) {
-//         return res.json({ success: false, error: "User not found" });
-//       };
-//       const userid = result[0].id;
-//       sql = "SELECT t.id, t.shareid, c.company, t.qty, t.rate, (t.qty-t.soldqty) AS cansell FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE userid = ? AND (t.qty-t.soldqty) > 0 ";
-//       try {
-//         conn.query(sql, [userid], (err, result) => {
-//           if (err) {
-//             return res.json({ success: false, error: err });
-//           };
-//           if (result.length === 0) {
-//             return res.json({ success: false, error: "No records to display" });
-//           };
-//           return res.json({ success: true, data: result });
-//         });
-//       } catch (err) {
-//         return res.json({ success: false, error: "Server Error" });
-//       };
-//     });
-
-//   } catch (err) {
-//     return res.json({ success: false, error: "Server Error" });
-//   };
-// });
-
 ///////////////////////
 //Update transactions//
 //////////////////////
-app.put("/api/tupdate", fetchuser, async (req, res) => {
+app.put("/api/update", fetchuser, async (req, res) => {
   let sql = "SELECT * FROM users WHERE username = ?";
-  console.log(req.body);
   const { tdate, qty, rate, id } = req.body;
   try {
     conn.query(sql, [req.username], (err, result) => {
@@ -465,5 +373,36 @@ app.put("/api/tupdate", fetchuser, async (req, res) => {
   };
 });
 
+//////////////////////
+//delete transaction//
+//////////////////////
+app.delete("/api/delete/:id", fetchuser, async (req, res) => {
+  let sql = "SELECT * FROM users WHERE username = ?";
+  try {
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "DELETE FROM transactions WHERE userid = ? and id = ?";
+      try {
+        conn.query(sql, [userid, req.params.id], (err, result) => {
+          if (err) {
+            return res.json({ success: false, error: err });
+          };
+          return res.json({success:true, message:"Record deleted successfully"});
+        });
+        } catch(err) {
+        return res.json({ success: false, error: "Server Error" });
+      };
+
+    });
+    } catch(err) {
+    return res.json({ success: false, error: "Server Error" });
+  };
+});
 
 app.listen(5000);
