@@ -101,7 +101,7 @@ app.post("/api/login", (req, res) => {
 //List of Companies in format for Search Select//
 /////////////////////////////////////////////////
 app.get("/api/forselect", (req, res) => {
-  const sql = "SELECT id as value, company as label FROM companies";
+  const sql = "SELECT id as value, company as label FROM companies_us";
   try {
     conn.query(sql, (err, result) => {
       if (err) {
@@ -131,7 +131,7 @@ app.get("/api/portfolio", fetchuser, async (req, res) => {
         return res.json({ success: false, error: "User not found" });
       };
       const userid = result[0].id;
-      sql = "SELECT t.shareid, c.company, sum(t.qty) AS qty, avg(t.rate) as avgrate, sum(t.rate*t.qty) AS avgcost FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ? GROUP BY c.company, t.shareid HAVING sum(t.qty) > 0";
+      sql = "SELECT t.shareid, c.company, c.symbol, sum(t.qty) AS qty, avg(t.rate) as avgrate, sum(t.rate*t.qty) AS avgcost FROM transactions t LEFT JOIN companies_us c ON c.id = t.shareid WHERE t.userid = ? GROUP BY c.company, t.shareid HAVING sum(t.qty) > 0";
       try {
         conn.query(sql, [userid], (err, result) => {
           if (err) {
@@ -141,7 +141,7 @@ app.get("/api/portfolio", fetchuser, async (req, res) => {
           //   return res.json({ success: false, error: "No data to show portfolio" });
           // };
           portfolio = result;
-          sql = "SELECT t.id, t.shareid, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ?";
+          sql = "SELECT t.id, t.shareid, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount FROM transactions t LEFT JOIN companies_us c ON c.id = t.shareid WHERE t.userid = ?";
           try {
             conn.query(sql, [userid], (err, result) => {
               if (err) {
@@ -151,7 +151,7 @@ app.get("/api/portfolio", fetchuser, async (req, res) => {
               //   return res.json({ success: false, error: "No data on transactions" });
               // };
               transactions = result;
-              sql = "select t.shareid, c.company, sum(t.qty), avg(t.rate), sum((t.qty*t.rate)) as amount from transactions t  left join companies c on c.id = t.shareid where t.userid = ? group by c.company having sum(t.qty) = 0";
+              sql = "select t.shareid, c.company, sum(t.qty) as qty, avg(t.rate) as avgrate, sum((t.qty*t.rate)) as amount from transactions t  left join companies_us c on c.id = t.shareid where t.userid = ? group by c.company having sum(t.qty) = 0";
               try {
                 conn.query(sql, [userid], (err, result) => {
                   if (err) {
@@ -273,7 +273,7 @@ app.get("/api/allbuy", fetchuser, async (req, res) => {
         return res.json({ success: false, error: "User not found" });
       };
       const userid = result[0].id;
-      sql = "SELECT c.company, sum(t.qty) AS qty, avg(t.rate) as avgrate, sum(t.rate*t.qty) AS avgcost FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ? GROUP BY c.company HAVING sum(t.qty) > 0";
+      sql = "SELECT c.company, sum(t.qty) AS qty, avg(t.rate) as avgrate, sum(t.rate*t.qty) AS avgcost FROM transactions t LEFT JOIN companies_us c ON c.id = t.shareid WHERE t.userid = ? GROUP BY c.company HAVING sum(t.qty) > 0";
       try {
         conn.query(sql, [userid], (err, result) => {
           if (err) {
@@ -283,7 +283,7 @@ app.get("/api/allbuy", fetchuser, async (req, res) => {
             return res.json({ success: false, error: "No records to display" });
           };
           portfolio = result;
-          sql = "SELECT t.shareid, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ?";
+          sql = "SELECT t.shareid, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount FROM transactions t LEFT JOIN companies_us c ON c.id = t.shareid WHERE t.userid = ?";
           try {
             conn.query(sql, [userid], (err, result) => {
               if (err) {
@@ -321,7 +321,7 @@ app.get("/api/allsale", fetchuser, async (req, res) => {
         return res.json({ success: false, error: "User not found" });
       };
       const userid = result[0].id;
-      sql = "SELECT t.id, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ? and t.qty < 0 order by t.tdate";
+      sql = "SELECT t.id, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount FROM transactions t LEFT JOIN companies_us c ON c.id = t.shareid WHERE t.userid = ? and t.qty < 0 order by t.tdate";
       try {
         conn.query(sql, [userid], (err, result) => {
           if (err) {
@@ -402,6 +402,25 @@ app.delete("/api/delete/:id", fetchuser, async (req, res) => {
     });
     } catch(err) {
     return res.json({ success: false, error: "Server Error" });
+  };
+});
+
+///////////////
+//find symbol//
+///////////////
+app.get("/api/symbol/:id", (req, res) => {
+  console.log(req.params.id);
+  const sql = "SELECT symbol FROM companies_us WHERE id = ?"
+  try{
+    conn.query(sql, [req.params.id], (err, result) => {
+      if(err){
+        return res.json({success:false, error:err});
+      };
+      console.log(result);
+      return res.json({success:true, data:result});
+    });
+  } catch(err) {
+    return res.json({success:false, error:err});
   };
 });
 

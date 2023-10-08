@@ -26,7 +26,7 @@
                   `userid` int(11) NOT NULL,
                   PRIMARY KEY (`id`),
                   KEY `fk_company` (`shareid`),
-                  CONSTRAINT `fk_company` FOREIGN KEY (`shareid`) REFERENCES `companies` (`id`) ON DELETE CASCADE
+                  CONSTRAINT `fk_company` FOREIGN KEY (`shareid`) REFERENCES `companies_us` (`id`) ON DELETE CASCADE
                 ) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
             </pma:table>
         </pma:database>
