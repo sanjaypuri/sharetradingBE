@@ -1,4 +1,5 @@
 const express = require('express');
+const axios = require('axios');
 const bodyparser = require('body-parser');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
@@ -101,7 +102,7 @@ app.post("/api/login", (req, res) => {
 //List of Companies in format for Search Select//
 /////////////////////////////////////////////////
 app.get("/api/forselect", (req, res) => {
-  const sql = "SELECT id as value, company as label FROM companies_us";
+  const sql = "SELECT id as value, company as label FROM companies";
   try {
     conn.query(sql, (err, result) => {
       if (err) {
@@ -131,7 +132,7 @@ app.get("/api/portfolio", fetchuser, async (req, res) => {
         return res.json({ success: false, error: "User not found" });
       };
       const userid = result[0].id;
-      sql = "SELECT t.shareid, c.company, c.symbol, sum(t.qty) AS qty, avg(t.rate) as avgrate, sum(t.rate*t.qty) AS avgcost FROM transactions t LEFT JOIN companies_us c ON c.id = t.shareid WHERE t.userid = ? GROUP BY c.company, t.shareid HAVING sum(t.qty) > 0";
+      sql = "SELECT t.shareid, c.company, c.symbol, sum(t.qty) AS qty, avg(t.rate) as avgrate, sum(t.rate*t.qty) AS avgcost FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ? GROUP BY c.company, t.shareid HAVING sum(t.qty) > 0";
       try {
         conn.query(sql, [userid], (err, result) => {
           if (err) {
@@ -141,7 +142,7 @@ app.get("/api/portfolio", fetchuser, async (req, res) => {
           //   return res.json({ success: false, error: "No data to show portfolio" });
           // };
           portfolio = result;
-          sql = "SELECT t.id, t.shareid, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount FROM transactions t LEFT JOIN companies_us c ON c.id = t.shareid WHERE t.userid = ?";
+          sql = "SELECT t.id, t.shareid, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ?";
           try {
             conn.query(sql, [userid], (err, result) => {
               if (err) {
@@ -151,13 +152,13 @@ app.get("/api/portfolio", fetchuser, async (req, res) => {
               //   return res.json({ success: false, error: "No data on transactions" });
               // };
               transactions = result;
-              sql = "select t.shareid, c.company, sum(t.qty) as qty, avg(t.rate) as avgrate, sum((t.qty*t.rate)) as amount from transactions t  left join companies_us c on c.id = t.shareid where t.userid = ? group by c.company having sum(t.qty) = 0";
+              sql = "select c.company, sum(t.qty) as qty, avg(t.rate) as avgrate, sum((t.qty*t.rate)) as amount from transactions t  left join companies c on c.id = t.shareid where t.userid = ? group by c.company having sum(t.qty) = 0";
               try {
                 conn.query(sql, [userid], (err, result) => {
                   if (err) {
                     return res.json({ success: false, error: err });
                   };
-                  return res.json({ success: true, portfolio: portfolio, transactions: transactions, gain:result });
+                  return res.json({ success: true, portfolio: portfolio, transactions: transactions, gain: result });
                 });
               } catch (err) {
                 return res.json({ success: false, error: "Server Error" });
@@ -273,7 +274,7 @@ app.get("/api/allbuy", fetchuser, async (req, res) => {
         return res.json({ success: false, error: "User not found" });
       };
       const userid = result[0].id;
-      sql = "SELECT c.company, sum(t.qty) AS qty, avg(t.rate) as avgrate, sum(t.rate*t.qty) AS avgcost FROM transactions t LEFT JOIN companies_us c ON c.id = t.shareid WHERE t.userid = ? GROUP BY c.company HAVING sum(t.qty) > 0";
+      sql = "SELECT c.company, sum(t.qty) AS qty, avg(t.rate) as avgrate, sum(t.rate*t.qty) AS avgcost FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ? GROUP BY c.company HAVING sum(t.qty) > 0";
       try {
         conn.query(sql, [userid], (err, result) => {
           if (err) {
@@ -283,7 +284,7 @@ app.get("/api/allbuy", fetchuser, async (req, res) => {
             return res.json({ success: false, error: "No records to display" });
           };
           portfolio = result;
-          sql = "SELECT t.shareid, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount FROM transactions t LEFT JOIN companies_us c ON c.id = t.shareid WHERE t.userid = ?";
+          sql = "SELECT t.shareid, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ?";
           try {
             conn.query(sql, [userid], (err, result) => {
               if (err) {
@@ -321,7 +322,7 @@ app.get("/api/allsale", fetchuser, async (req, res) => {
         return res.json({ success: false, error: "User not found" });
       };
       const userid = result[0].id;
-      sql = "SELECT t.id, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount FROM transactions t LEFT JOIN companies_us c ON c.id = t.shareid WHERE t.userid = ? and t.qty < 0 order by t.tdate";
+      sql = "SELECT t.id, c.company, t.tdate, t.qty, t.rate, (t.rate*t.qty) AS amount FROM transactions t LEFT JOIN companies c ON c.id = t.shareid WHERE t.userid = ? and t.qty < 0 order by t.tdate";
       try {
         conn.query(sql, [userid], (err, result) => {
           if (err) {
@@ -393,14 +394,14 @@ app.delete("/api/delete/:id", fetchuser, async (req, res) => {
           if (err) {
             return res.json({ success: false, error: err });
           };
-          return res.json({success:true, message:"Record deleted successfully"});
+          return res.json({ success: true, message: "Record deleted successfully" });
         });
-        } catch(err) {
+      } catch (err) {
         return res.json({ success: false, error: "Server Error" });
       };
 
     });
-    } catch(err) {
+  } catch (err) {
     return res.json({ success: false, error: "Server Error" });
   };
 });
@@ -409,18 +410,298 @@ app.delete("/api/delete/:id", fetchuser, async (req, res) => {
 //find symbol//
 ///////////////
 app.get("/api/symbol/:id", (req, res) => {
-  console.log(req.params.id);
-  const sql = "SELECT symbol FROM companies_us WHERE id = ?"
-  try{
+  const sql = "SELECT symbol FROM companies WHERE id = ?"
+  try {
     conn.query(sql, [req.params.id], (err, result) => {
-      if(err){
-        return res.json({success:false, error:err});
+      if (err) {
+        return res.json({ success: false, error: err });
       };
-      console.log(result);
-      return res.json({success:true, data:result});
+      return res.json({ success: true, data: result });
     });
-  } catch(err) {
-    return res.json({success:false, error:err});
+  } catch (err) {
+    return res.json({ success: false, error: err });
+  };
+});
+
+app.get("/api/uniquecompanies", (req, res) => {
+  const sql = "select distinct t.shareid, c.symbol from transactions t left join companies c on c.id = t.shareid"
+  try {
+    conn.query(sql, (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      return res.json({ success: true, data: result });
+    });
+  } catch (err) {
+    return res.json({ success: false, error: err });
+  }
+});
+
+////////////////////////////
+//APIs for the Home Screen//
+////////////////////////////
+
+///////////////////
+//Total Purchases//
+///////////////////
+app.get("/api/home/purchasessum", fetchuser, async (req, res) => {
+  let sql = "SELECT * FROM users WHERE username = ?";
+  try {
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "SELECT CAST(SUM(qty*rate) AS FLOAT) AS totalpurchases FROM transactions WHERE userid = ? AND qty > 0";
+      try {
+        conn.query(sql, [userid], (err, result) => {
+          if (err) {
+            return res.json({ success: false, error: err });
+          };
+          if (result.length === 0) {
+            return res.json({ success: true, data: [{ totalpurchases: 0 }] });
+          };
+          return res.json({ success: true, data: result })
+        });
+      } catch (err) {
+        return res.json({ success: false, error: "Server Error" });
+      };
+    });
+  } catch (err) {
+    return res.json({ success: false, error: "Server Error" });
+  };
+});
+
+///////////////
+//Total Sales//
+///////////////
+app.get("/api/home/salessum", fetchuser, async (req, res) => {
+  let sql = "SELECT * FROM users WHERE username = ?";
+  try {
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "SELECT IFNULL(CAST(SUM(-1*qty*rate) AS FLOAT),0) AS totalsales FROM transactions WHERE userid = ? AND qty < 0";
+      try {
+        conn.query(sql, [userid], (err, result) => {
+          if (err) {
+            return res.json({ success: false, error: err });
+          };
+          if (result.affectedRows === 0) {
+            return res.json({ success: true, data: [{ totalsales: 0 }] });
+          };
+          return res.json({ success: true, data: result })
+        });
+      } catch (err) {
+        return res.json({ success: false, error: "Server Error" });
+      };
+    });
+  } catch (err) {
+    return res.json({ success: false, error: "Server Error" });
+  };
+});
+
+/////////////////////
+//Summary of Sales//
+////////////////////
+app.get("/api/home/salesummary", fetchuser, async (req, res) => {
+  let sql = "SELECT * FROM users WHERE username = ?";
+  try {
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "SELECT shareid, CAST(-1*sum(qty) AS FLOAT) AS qty, CAST(sum(qty*rate)/sum(qty) AS FLOAT) AS avgrate, CAST(-1*sum(qty*rate) AS FLOAT) AS amount FROM transactions WHERE userid = ? AND qty < 0 GROUP BY shareid";
+      try {
+        conn.query(sql, [userid], (err, result) => {
+          if (err) {
+            return res.json({ success: false, error: err });
+          };
+          return res.json({ success: true, data: result })
+        });
+      } catch (err) {
+        return res.json({ success: false, error: "Server Error" });
+      };
+    });
+  } catch (err) {
+    return res.json({ success: false, error: "Server Error" });
+  };
+});
+
+///////////////////////
+//Summary of Purchase//
+//////////////////////
+app.get("/api/home/purchasesummary", fetchuser, async (req, res) => {
+  let sql = "SELECT * FROM users WHERE username = ?";
+  try {
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "SELECT shareid, CAST(sum(qty) AS FLOAT) AS qty, CAST(sum(qty*rate)/sum(qty) AS FLOAT) AS avgrate, CAST(sum(qty*rate) AS FLOAT) AS amount FROM transactions WHERE userid = ? AND qty > 0 GROUP BY shareid";
+      try {
+        conn.query(sql, [userid], (err, result) => {
+          if (err) {
+            return res.json({ success: false, error: err });
+          };
+          return res.json({ success: true, data: result })
+        });
+      } catch (err) {
+        return res.json({ success: false, error: "Server Error" });
+      };
+    });
+  } catch (err) {
+    return res.json({ success: false, error: "Server Error" });
+  };
+});
+
+///////////////////
+//Realised Profit//
+///////////////////
+app.get("/api/home/realisedprofit", fetchuser, async (req, res) => {
+  let sql = "SELECT * FROM users WHERE username = ?";
+  try {
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "SELECT shareid, CAST(sum(qty) AS FLOAT) AS qty, CAST(sum(qty*rate)/sum(qty) AS FLOAT) AS avgrate, CAST(sum(qty*rate) AS FLOAT) AS amount FROM transactions WHERE userid = ? AND qty > 0 GROUP BY shareid";
+      try {
+        conn.query(sql, [userid], (err, result) => {
+          if (err) {
+            return res.json({ success: false, error: err });
+          };
+          const purchaseSummary = result;
+          sql = "SELECT shareid, CAST(-1*sum(qty) AS FLOAT) AS qty, CAST(sum(qty*rate)/sum(qty) AS FLOAT) AS avgrate, CAST(-1*sum(qty*rate) AS FLOAT) AS amount FROM transactions WHERE userid = ? AND qty < 0 GROUP BY shareid";
+          try {
+            conn.query(sql, [userid], (err, result) => {
+              if (err) {
+                return res.json({ success: false, error: err });
+              };
+              const saleSummary = result;
+              let i = 0, j = 0;
+              // let realisedProfitSummary = [];
+              let realisedprofit = 0;
+              for (i = 0; i < saleSummary.length; i++) {
+                for (j = 0; j < purchaseSummary.length; j++) {
+                  if (saleSummary[i].shareid === purchaseSummary[j].shareid) {
+                    realisedprofit += (saleSummary[i].avgrate - purchaseSummary[j].avgrate) * saleSummary[i].qty;
+                    // realisedProfitSummary.push(JSON.parse(`{"shareid":${saleSummary[i].shareid},"realisedprofit":${(saleSummary[i].avgrate - purchaseSummary[j].avgrate)*saleSummary[i].qty}}`))
+                  };
+                };
+              };
+              return res.json({ success: true, realisedprofit: realisedprofit })
+            });
+          } catch (err) {
+            return res.json({ success: false, error: "Server Error" });
+          };
+        });
+      } catch (err) {
+        return res.json({ success: false, error: "Server Error" });
+      };
+    });
+  } catch (err) {
+    return res.json({ success: false, error: "Server Error" });
+  };
+});
+
+////////////////////
+//Home - Portfolio//
+////////////////////
+app.get("/api/home/portfolio", fetchuser, async (req, res) => {
+  let portfolioWithCurrentRates;
+  let sql = "SELECT * FROM users WHERE username = ?";
+  try {
+    conn.query(sql, [req.username], (err, result) => {
+      if (err) {
+        return res.json({ success: false, error: err });
+      };
+      if (result.length === 0) {
+        return res.json({ success: false, error: "User not found" });
+      };
+      const userid = result[0].id;
+      sql = "SELECT c.company as share, CAST(sum(t.qty) AS FLOAT) AS qty, CAST(sum(t.rate*t.qty)/sum(t.qty) AS FLOAT) AS avgrate, CAST(sum(t.rate*t.qty) AS FLOAT) AS value FROM transactions t LEFT JOIN companies c on c.id = t.shareid WHERE userid = ? GROUP BY c.company";
+      try {
+        conn.query(sql, [userid], (err, result) => {
+          if (err) {
+            return res.json({ success: false, error: err });
+          };
+          const portfolio = result;
+          const sql = "select distinct t.shareid, c.symbol from transactions t left join companies c on c.id = t.shareid"
+          try {
+            conn.query(sql, (err, result) => {
+              if (err) {
+                return res.json({ success: false, error: err });
+              };
+              const uniqueCompanies = result;
+              console.log(uniqueCompanies)
+              let i;
+              const apiUrl = "https://www.alphavantage.co/query";
+              const apiParams = {};
+              let closingValues = [];
+              for (i = 0; i < uniqueCompanies.length; i++) {
+                const apiParams = {
+                  params: {
+                    function: 'TIME_SERIES_DAILY',
+                    apikey: 'YSX0K9U097FUH83Z',
+                    symbol: uniqueCompanies[i].symbol,
+                  },
+                };
+                console.log(apiParams);
+                axios.get(apiUrl, apiParams)
+                  .then((response) => {
+                    try {
+                      if (!response.data || !response.data["Time Series (Daily)"]) {
+                        return res.json({ success: false, error: "Error fatching current market rates" });
+                      } else {
+                        const datesArray = Object.keys(response.data["Time Series (Daily)"]);
+                        datesArray.sort((a, b) => new Date(b) - new Date(a));
+                        const mostRecentDate = datesArray[0];
+                        closingValues.push(parseFloat(response.data["Time Series (Daily)"][mostRecentDate]["4. close"]));
+                        portfolioWithCurrentRates = portfolio.map((item, index) => ({
+                          ...item,
+                          currentrate: closingValues[index],
+                          currentvalue: closingValues[index] * item.qty
+                        }));
+                        // console.log("new portfolio:", portfolioWithCurrentRates);
+                        return res.json({ success: true, data: portfolioWithCurrentRates });
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      // throw new Error("Error fetching data");
+                    };
+                  });
+              };
+            });
+          } catch (err) {
+            return res.json({ success: false, error: err });
+          }
+        });
+      } catch (err) {
+        return res.json({ success: false, error: "Server Error" });
+      };
+    });
+  } catch (err) {
   };
 });
 
